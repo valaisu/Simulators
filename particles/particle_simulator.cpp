@@ -6,7 +6,10 @@
 using namespace std;
 
 // Gravity constant
-int G = 10000;
+int G = 10;
+float maxForce = 0.2;
+float friction = 0.00001;
+
 
 class Particle {
 public:
@@ -19,34 +22,33 @@ public:
     Particle(float x, float y, float vx, float vy, int p_type, float mass, float charge) 
     : x(x), y(y), vx(vx), vy(vy), p_type(p_type), mass(mass), charge(charge) {}
 
-    void setPos(){
-        circle.setPosition(x, y);
-    }
-
     void updatePosition(float dt){
         x += vx * dt;
         y += vy * dt;
         if (0 > x || x > 800) {vx = -vx;}
         if (0 > y || y > 600) {vy = -vy;}
+        circle.setPosition(x, y);
     }
 
     void updateSpeed(float dt, std::vector<Particle>* particles){
         if (particles != nullptr){
             for (Particle& p : *particles) {
                 // Below control the attraction/repellion of the particle
-                float attraction = (p.p_type == p_type) ? 1.0 : 1.0;
-                float dx = p.x - x;
-                float dy = p.y - y;
+                float attraction = (p.p_type == p_type == 1) ? -0.5 : 1.0;
+                float dx = p.x - x, dy = p.y - y;
+                float tot_vx = 0, tot_vy = 0;
                 if (dx != 0 || dy != 0) {
                     float r2 = dx*dx + dy*dy;
                     // too high forces break the simulation, 
                     // in reality particles can't get too close to each other
-                    float f = std::min((p.mass * mass) * G / r2, 0.2f) * attraction;
+                    float f = std::min((p.mass * mass) * G / r2, maxForce) * attraction;
                     float fx = f * dx / (abs(dx) + abs(dy));
                     float fy = f * dy / (abs(dx) + abs(dy));
-                    vx += fx / mass * dt;
-                    vy += fy / mass * dt;
+                    tot_vx += (fx / mass * dt);
+                    tot_vy += (fy / mass * dt);
                 }
+                vx = (vx + tot_vx) * (1-friction);
+                vy = (vy + tot_vy) * (1-friction);
 
             }
             
@@ -77,11 +79,11 @@ int main() {
     particles.emplace_back(400, 400, -5, 0, 0, 1, 0);
 
     
-    for(int i = 0; i < 000; i++){
+    for(int i = 0; i < 200; i++){
         particles.emplace_back(generateRandomNumber(0, 800), generateRandomNumber(0, 600), 0, 0, 0, 1, 0);
     }
 
-    for(int i = 0; i < 000; i++){
+    for(int i = 0; i < 200; i++){
         particles.emplace_back(generateRandomNumber(0, 800), generateRandomNumber(0, 600), 0, 0, 1, 1, 0);
     }
 
@@ -115,7 +117,6 @@ int main() {
             }
             for (auto& particle : particles) {
                 particle.updatePosition(1);
-                particle.setPos();
                 particle.circle.setFillColor(colorDict[particle.p_type]);
                 window.draw(particle.circle);
             }
