@@ -1,22 +1,36 @@
+// Generates particles of 3 random types, and 
+// assigns forces between them. Results in interesting 
+// formations.
+
+
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cmath>
 #include <random>
-
 using namespace std;
+
+
+float fps = 60.0;
 
 // Gravity constant
 float G = 200;
+
+// following three make the clusters more stable
 float maxForce = 0.3;
 float maxSpeed = 10.0;
 float friction = 0.002;
+
+// drags the particles to right bottom corner (if positive)
+float flow = 0.010;
+
+// display size
 int size_x = 900;
 int size_y = 900;
 
-
 class Particle {
 public:
-    float x, y, vx, vy;
+    float x, y;
+    float vx, vy;
     int p_type;
     float mass;
     float charge;
@@ -32,8 +46,6 @@ public:
         if (x > size_x-50) {vx = -vx; x = size_x-50;}
         if (50 > y) {vy = -vy; y = 50;}
         if (y > size_y-50) {vy = -vy; y = size_y-50;}
-        //if (50 > x || x > size_x-50) {vx = -vx;}
-        //if (50 > y || y > size_y-50) {vy = -vy;}
         circle.setPosition(x, y);
     }
 
@@ -54,15 +66,12 @@ public:
                     tot_vx += (fx / mass * dt);
                     tot_vy += (fy / mass * dt);
                 }
-                vx = std::min((vx + tot_vx) * (1-friction), maxSpeed);
-                vy = std::min((vy + tot_vy) * (1-friction), maxSpeed);
-
-            }
-            
+                vx = std::min((vx + tot_vx) * (1-friction), maxSpeed) + flow;
+                vy = std::min((vy + tot_vy) * (1-friction), maxSpeed) + flow;
+            }            
         }
     }
 };
-
 
 
 int generateRandomNumber(int min, int max) {
@@ -73,6 +82,7 @@ int generateRandomNumber(int min, int max) {
 }
 
 
+// generate random float
 float grf(float min, float max) {
     static std::mt19937 engine(std::random_device{}());
     std::uniform_real_distribution<float> distribution(min, max);
@@ -84,20 +94,20 @@ int main() {
 
     // create the particles
     std::vector<Particle> particles = {};
+
+    // manual creation
     particles.emplace_back(400, 400, 5, 0, 0, 1, 0);
     particles.emplace_back(600, 400, 0, 5, 0, 1, 0);
     particles.emplace_back(400, 600, 0, -5, 0, 1, 0);
     particles.emplace_back(600, 600, -5, 0, 0, 1, 0);
 
-    
+    // automatic creation
     for(int i = 0; i < 100; i++){
         particles.emplace_back(generateRandomNumber(50, size_x-50), generateRandomNumber(50, size_y-50), 0, 0, 0, 1, 0);
     }
-
     for(int i = 0; i < 100; i++){
         particles.emplace_back(generateRandomNumber(50, size_x-50), generateRandomNumber(50, size_y-50), 0, 0, 1, 1, 0);
     }
-
     for(int i = 0; i < 100; i++){
         particles.emplace_back(generateRandomNumber(50, size_x-50), generateRandomNumber(50, size_y-50), 0, 0, 2, 1, 0);
     }
@@ -105,13 +115,14 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(size_x, size_y), "Particles");
     sf::Clock clock;
     sf:: Time accumulator = sf::Time::Zero;
-    sf::Time timestep = sf::seconds(1.0f / 60.0f);
+    sf::Time timestep = sf::seconds(1.0f / fps);
 
     std::map<int, sf::Color> colorDict;
     colorDict[0] = sf::Color::Red;
     colorDict[1] = sf::Color::Green;
     colorDict[2] = sf::Color::Blue;
 
+    // Generate forces between particles
     std::map<std::pair<int, int>, float> attractionDict;
 
     float min = -4.0f, max = 4.0f;
@@ -181,7 +192,6 @@ int main() {
                 particle.circle.setFillColor(colorDict[particle.p_type]);
                 window.draw(particle.circle);
             }
-
             window.display();
         }
     }
