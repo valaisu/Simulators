@@ -6,7 +6,7 @@
 using namespace std;
 
 // Gravity constant
-int G = 200;
+float G = 200;
 float maxForce = 0.3;
 float maxSpeed = 10.0;
 float friction = 0.002;
@@ -28,8 +28,12 @@ public:
     void updatePosition(float dt){
         x += vx * dt;
         y += vy * dt;
-        if (50 > x || x > size_x-50) {vx = -vx;}
-        if (50 > y || y > size_y-50) {vy = -vy;}
+        if (50 > x) {vx = -vx; x = 50;}
+        if (x > size_x-50) {vx = -vx; x = size_x-50;}
+        if (50 > y) {vy = -vy; y = 50;}
+        if (y > size_y-50) {vy = -vy; y = size_y-50;}
+        //if (50 > x || x > size_x-50) {vx = -vx;}
+        //if (50 > y || y > size_y-50) {vy = -vy;}
         circle.setPosition(x, y);
     }
 
@@ -87,15 +91,15 @@ int main() {
 
     
     for(int i = 0; i < 100; i++){
-        particles.emplace_back(generateRandomNumber(0, size_x), generateRandomNumber(0, size_y), 0, 0, 0, 1, 0);
+        particles.emplace_back(generateRandomNumber(50, size_x-50), generateRandomNumber(50, size_y-50), 0, 0, 0, 1, 0);
     }
 
     for(int i = 0; i < 100; i++){
-        particles.emplace_back(generateRandomNumber(0, size_x), generateRandomNumber(0, size_y), 0, 0, 1, 1, 0);
+        particles.emplace_back(generateRandomNumber(50, size_x-50), generateRandomNumber(50, size_y-50), 0, 0, 1, 1, 0);
     }
 
     for(int i = 0; i < 100; i++){
-        particles.emplace_back(generateRandomNumber(0, size_x), generateRandomNumber(0, size_y), 0, 0, 2, 1, 0);
+        particles.emplace_back(generateRandomNumber(50, size_x-50), generateRandomNumber(50, size_y-50), 0, 0, 2, 1, 0);
     }
 
     sf::RenderWindow window(sf::VideoMode(size_x, size_y), "Particles");
@@ -112,13 +116,10 @@ int main() {
 
     float min = -4.0f, max = 4.0f;
 
-
-    /*
     //SYMMETRIC
-    //std::vector<float> rfloats = {grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max)};
+    std::vector<float> rfloats = {grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max)};
     //                                1              2, 4           3, 7           5              6,  8           9
-    std::vector<float> rfloats = {2, 3, -6, 2, -1.5, 0};
-    //                            1  24  37 5  68   9
+
     std::cout << rfloats[0]<<" "<<rfloats[1]<<" "<<rfloats[2]<< std::endl;
     std::cout << rfloats[1]<<" "<<rfloats[3]<<" "<<rfloats[4]<<std::endl;
     std::cout << rfloats[2]<<" "<<rfloats[4]<<" "<<rfloats[5]<<std::endl;
@@ -134,11 +135,12 @@ int main() {
     attractionDict[{2, 0}] = rfloats[2];
     attractionDict[{2, 1}] = rfloats[4];
     attractionDict[{2, 2}] = rfloats[5];
-    */
+    
 
-
-
+/*
+    // ASYMMETRIC
     std::vector<float> rfloats = {grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max), grf(min, max)};
+    
     std::cout << rfloats[0]<<" "<<rfloats[1]<<" "<<rfloats[2]<< std::endl;
     std::cout << rfloats[3]<<" "<<rfloats[4]<<" "<<rfloats[5]<<std::endl;
     std::cout << rfloats[6]<<" "<<rfloats[7]<<" "<<rfloats[8]<<std::endl;
@@ -154,10 +156,7 @@ int main() {
     attractionDict[{2, 0}] = rfloats[6];
     attractionDict[{2, 1}] = rfloats[7];
     attractionDict[{2, 2}] = rfloats[8];
-
-
-
-
+*/
 
     while (window.isOpen()) {
         sf::Event event;
